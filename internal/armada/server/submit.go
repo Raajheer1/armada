@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gogo/protobuf/proto"
 	"math"
 	"strings"
 	"time"
@@ -39,6 +40,21 @@ type SubmitServer struct {
 	queueManagementConfig    *configuration.QueueManagementConfig
 	schedulingConfig         *configuration.SchedulingConfig
 	compressorPool           *pool.ObjectPool
+}
+
+type JobSubmitError struct {
+	JobErrorsDetails []*api.JobSubmitResponseItem
+	Err              error
+}
+
+func (e *JobSubmitError) Error() string {
+	output := ""
+	for _, jobError := range e.JobErrorsDetails {
+		output += fmt.Sprintf("Error - Job %s: %s\n", jobError.JobId, jobError.Error)
+	}
+
+	output += fmt.Sprintf("\nError - %s", e.Err.Error())
+	return output
 }
 
 func NewSubmitServer(
@@ -255,19 +271,30 @@ func (server *SubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmitRe
 
 	jobs, responseItems, e := server.createJobs(req, principal.GetName(), principal.GetGroupNames())
 	if e != nil {
-		result := &api.JobSubmitResponse{
-			JobResponseItems: responseItems,
+		details := make([]proto.Message, len(responseItems))
+		for i, item := range responseItems {
+			details[i] = item
 		}
 
 		reqJson, _ := json.Marshal(req)
-		return result, status.Errorf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e)
+		st, err := status.Newf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e).WithDetails(details...)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e)
+		}
+		return nil, st.Err()
 	}
 	if responseItems, err := validation.ValidateApiJobs(jobs, *server.schedulingConfig); err != nil {
-		result := &api.JobSubmitResponse{
-			JobResponseItems: responseItems,
+		details := make([]proto.Message, len(responseItems))
+		for i, item := range responseItems {
+			details[i] = item
 		}
 
-		return result, err
+		reqJson, _ := json.Marshal(req)
+		st, err := status.Newf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e).WithDetails(details...)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e)
+		}
+		return nil, st.Err()
 	}
 
 	q, err := server.getQueueOrCreate(ctx, req.Queue)
@@ -305,13 +332,18 @@ func (server *SubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmitRe
 	}
 
 	if ok, responseItems, err := validateJobsCanBeScheduled(jobs, allClusterSchedulingInfo); !ok {
-		result := &api.JobSubmitResponse{
-			JobResponseItems: responseItems,
+		details := make([]proto.Message, len(responseItems))
+		for i, item := range responseItems {
+			details[i] = item
 		}
 		if err != nil {
-			return result, errors.WithMessagef(err, "can't schedule job for user %s", principal.GetName())
+			st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] error validating jobs: %s", err).WithDetails(details...)
+			if e != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "[SubmitJobs] error validating jobs: %s", err)
+			}
+			return nil, st.Err()
 		}
-		return result, errors.Errorf("can't schedule job for user %s", principal.GetName())
+		return nil, errors.Errorf("can't schedule job for user %s", principal.GetName())
 	}
 
 	// Create events marking the jobs as submitted
