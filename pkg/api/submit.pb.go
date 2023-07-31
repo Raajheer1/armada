@@ -1760,7 +1760,16 @@ func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opt
 	out := new(JobSubmitResponse)
 	err := c.cc.Invoke(ctx, "/api.Submit/SubmitJobs", in, out, opts...)
 	if err != nil {
-		return nil, err
+		st := status.Convert(err)
+		response := &JobSubmitResponse{
+			JobResponseItems: make([]*JobSubmitResponseItem, 0, len(st.Details())),
+		}
+		for _, detail := range st.Details() {
+			if jobDetail, ok := detail.(JobSubmitResponseItem); ok {
+				response.JobResponseItems = append(response.JobResponseItems, &jobDetail)
+			}
+		}
+		return response, err
 	}
 	return out, nil
 }

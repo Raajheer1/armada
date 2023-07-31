@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	"math/rand"
 	"strings"
 	"time"
@@ -94,16 +95,34 @@ func (srv *PulsarSubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmi
 	// We use the legacy code for the conversion to ensure that behaviour doesn't change.
 	apiJobs, responseItems, err := srv.SubmitServer.createJobs(req, userId, groups)
 	if err != nil {
-		result := &api.JobSubmitResponse{
-			JobResponseItems: responseItems,
+		details := make([]proto.Message, len(responseItems))
+		for i, item := range responseItems {
+			details[i] = &api.JobSubmitResponseItem{
+				JobId: item.JobId,
+				Error: item.Error,
+			}
 		}
-		return result, err
+
+		st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] Failed to parse job request: %s", err.Error()).WithDetails(details...)
+		if e != nil {
+			return nil, status.Newf(codes.Internal, "[SubmitJobs] Failed to parse job request: %s", e.Error()).Err()
+		}
+		return nil, st.Err()
 	}
 	if responseItems, err := commonvalidation.ValidateApiJobs(apiJobs, *srv.SubmitServer.schedulingConfig); err != nil {
-		result := &api.JobSubmitResponse{
-			JobResponseItems: responseItems,
+		details := make([]proto.Message, len(responseItems))
+		for i, item := range responseItems {
+			details[i] = &api.JobSubmitResponseItem{
+				JobId: item.JobId,
+				Error: item.Error,
+			}
 		}
-		return result, err
+
+		st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] Failed to parse job request: %s", err.Error()).WithDetails(details...)
+		if e != nil {
+			return nil, status.Newf(codes.Internal, "[SubmitJobs] Failed to parse job request: %s", e.Error()).Err()
+		}
+		return nil, st.Err()
 	}
 
 	schedulersByJobId, err := srv.assignScheduler(apiJobs)

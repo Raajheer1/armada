@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gogo/protobuf/proto"
+	proto2 "github.com/golang/protobuf/proto"
 	"math"
 	"strings"
 	"time"
@@ -271,7 +271,7 @@ func (server *SubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmitRe
 
 	jobs, responseItems, e := server.createJobs(req, principal.GetName(), principal.GetGroupNames())
 	if e != nil {
-		details := make([]proto.Message, len(responseItems))
+		details := make([]proto2.Message, len(responseItems))
 		for i, item := range responseItems {
 			details[i] = item
 		}
@@ -284,7 +284,7 @@ func (server *SubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmitRe
 		return nil, st.Err()
 	}
 	if responseItems, err := validation.ValidateApiJobs(jobs, *server.schedulingConfig); err != nil {
-		details := make([]proto.Message, len(responseItems))
+		details := make([]proto2.Message, len(responseItems))
 		for i, item := range responseItems {
 			details[i] = item
 		}
@@ -332,7 +332,7 @@ func (server *SubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmitRe
 	}
 
 	if ok, responseItems, err := validateJobsCanBeScheduled(jobs, allClusterSchedulingInfo); !ok {
-		details := make([]proto.Message, len(responseItems))
+		details := make([]proto2.Message, len(responseItems))
 		for i, item := range responseItems {
 			details[i] = item
 		}
