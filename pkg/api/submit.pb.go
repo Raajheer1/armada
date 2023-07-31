@@ -1766,8 +1766,8 @@ func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opt
 			JobResponseItems: make([]*JobSubmitResponseItem, 0, len(st.Details())),
 		}
 		for _, detail := range st.Details() {
-			if jobDetail, ok := detail.(JobSubmitResponseItem); ok {
-				response.JobResponseItems = append(response.JobResponseItems, &jobDetail)
+			if jobDetail, ok := detail.(*JobSubmitResponseItem); ok {
+				response.JobResponseItems = append(response.JobResponseItems, jobDetail)
 			}
 		}
 		return response, err
