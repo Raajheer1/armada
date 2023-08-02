@@ -1948,9 +1948,15 @@ func _Submit_SubmitJobs_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/api.Submit/SubmitJobs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SubmitServer).SubmitJobs(ctx, req.(*JobSubmitRequest))
+		a1, b1 := srv.(SubmitServer).SubmitJobs(ctx, req.(*JobSubmitRequest))
+		st := status.Convert(b1)
+		fmt.Println("gRPC Details - 1:", st.Details())
+		return a1, b1
 	}
-	return interceptor(ctx, in, info, handler)
+	a2, b2 := interceptor(ctx, in, info, handler)
+	st := status.Convert(b2)
+	fmt.Println("gRPC Details - 2:", st.Details())
+	return a2, b2
 }
 
 func _Submit_CancelJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
