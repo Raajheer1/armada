@@ -99,8 +99,10 @@ func (srv *PulsarSubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmi
 			JobResponseItems: responseItems,
 		}
 
+		fmt.Println("STEP 1.1")
 		st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] Failed to parse job request: %s", err.Error()).WithDetails(details)
 		if e != nil {
+			fmt.Println("AN ERROR OCCURED HERE!!!")
 			return nil, status.Newf(codes.Internal, "[SubmitJobs] Failed to parse job request: %s", e.Error()).Err()
 		}
 		return nil, st.Err()
