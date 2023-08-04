@@ -24,10 +24,6 @@ import (
 	"github.com/armadaproject/armada/internal/common/util"
 	"github.com/armadaproject/armada/pkg/api"
 	"github.com/armadaproject/armada/pkg/armadaevents"
-
-	_ "github.com/gogo/protobuf/gogoproto"
-	_ "github.com/gogo/protobuf/proto"
-	_ "github.com/gogo/protobuf/types"
 )
 
 // SubmitFromLog is a service that reads messages from Pulsar and updates the state of the Armada server accordingly

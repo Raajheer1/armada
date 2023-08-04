@@ -36,6 +36,11 @@ import (
 	"github.com/armadaproject/armada/pkg/api"
 	"github.com/armadaproject/armada/pkg/armadaevents"
 	"github.com/armadaproject/armada/pkg/client/queue"
+
+	_ "github.com/gogo/protobuf/gogoproto"
+	_ "github.com/gogo/protobuf/proto"
+	_ "github.com/gogo/protobuf/sortkeys"
+	_ "github.com/gogo/protobuf/types"
 )
 
 // PulsarSubmitServer is a service that accepts API calls according to the original Armada submit API
