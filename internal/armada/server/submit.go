@@ -276,9 +276,11 @@ func (server *SubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmitRe
 			details[i] = item
 		}
 
+		fmt.Println("STEP 1")
 		reqJson, _ := json.Marshal(req)
 		st, err := status.Newf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e).WithDetails(details...)
 		if err != nil {
+			fmt.Println("AN ERROR OCCURED HERE!!!")
 			return nil, status.Errorf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e)
 		}
 		return nil, st.Err()

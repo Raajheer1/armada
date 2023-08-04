@@ -1760,6 +1760,7 @@ func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opt
 	out := new(JobSubmitResponse)
 	err := c.cc.Invoke(ctx, "/api.Submit/SubmitJobs", in, out, opts...)
 	if err != nil {
+		fmt.Printf("Raw error: %v\n", err)
 		st := status.Convert(err)
 		for _, detail := range st.Details() {
 			switch t := detail.(type) {
