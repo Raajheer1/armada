@@ -1768,6 +1768,7 @@ func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opt
 			case *JobSubmitResponseItem:
 				fmt.Println("Job Submit Response Item:", t)
 			}
+			fmt.Println(detail)
 		}
 		fmt.Println("gRPC Details:", st.Details())
 		response := &JobSubmitResponse{
@@ -1835,6 +1836,7 @@ func (c *submitClient) UpdateQueue(ctx context.Context, in *Queue, opts ...grpc.
 		return nil, err
 	}
 	return out, nil
+
 }
 
 func (c *submitClient) UpdateQueues(ctx context.Context, in *QueueList, opts ...grpc.CallOption) (*BatchQueueUpdateResponse, error) {
