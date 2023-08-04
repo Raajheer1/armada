@@ -1761,6 +1761,14 @@ func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opt
 	err := c.cc.Invoke(ctx, "/api.Submit/SubmitJobs", in, out, opts...)
 	if err != nil {
 		st := status.Convert(err)
+		for _, detail := range st.Details() {
+			switch t := detail.(type) {
+			case *JobSubmitResponse:
+				fmt.Println("Job Submit Response:", t)
+			case *JobSubmitResponseItem:
+				fmt.Println("Job Submit Response Item:", t)
+			}
+		}
 		fmt.Println("gRPC Details:", st.Details())
 		response := &JobSubmitResponse{
 			JobResponseItems: make([]*JobSubmitResponseItem, 0, len(st.Details())),
