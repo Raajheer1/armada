@@ -35,9 +35,11 @@ func (a *App) Submit(path string, dryRun bool) error {
 		for _, request := range requests {
 			response, err := client.SubmitJobs(c, request)
 			if err != nil {
+				fmt.Println("[JobSubmitResponse]")
 				for _, jobResponseItem := range response.JobResponseItems {
 					fmt.Fprintf(a.Out, "Error submitting job with id %s, details: %s\n", jobResponseItem.JobId, jobResponseItem.Error)
 				}
+				fmt.Println()
 				return errors.WithMessagef(err, "error submitting request %#v", request)
 			}
 
