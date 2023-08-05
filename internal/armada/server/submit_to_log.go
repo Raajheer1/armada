@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"math/rand"
 	"strings"
 	"time"
@@ -121,15 +120,11 @@ func (srv *PulsarSubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmi
 		return nil, st.Err()
 	}
 	if responseItems, err := commonvalidation.ValidateApiJobs(apiJobs, *srv.SubmitServer.schedulingConfig); err != nil {
-		details := make([]proto.Message, len(responseItems))
-		for i, item := range responseItems {
-			details[i] = &api.JobSubmitResponseItem{
-				JobId: item.JobId,
-				Error: item.Error,
-			}
+		details := &api.JobSubmitResponse{
+			JobResponseItems: responseItems,
 		}
 
-		st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] Failed to parse job request: %s", err.Error()).WithDetails(details...)
+		st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] Failed to parse job request: %s", err.Error()).WithDetails(details)
 		if e != nil {
 			return nil, status.Newf(codes.Internal, "[SubmitJobs] Failed to parse job request: %s", e.Error()).Err()
 		}
