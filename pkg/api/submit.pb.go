@@ -1759,33 +1759,15 @@ func NewSubmitClient(cc *grpc.ClientConn) SubmitClient {
 func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opts ...grpc.CallOption) (*JobSubmitResponse, error) {
 	out := new(JobSubmitResponse)
 	err := c.cc.Invoke(ctx, "/api.Submit/SubmitJobs", in, out, opts...)
-	msgType := proto.MessageType("api.JobSubmitResponse")
-	fmt.Println("Client Registered type:", msgType)
-
-	msgType2 := proto.MessageType("api.JobSubmitResponseItem")
-	fmt.Println("Client Registered type:", msgType2)
 	if err != nil {
-		fmt.Printf("Raw error: %v\n", err)
 		st := status.Convert(err)
 		for _, detail := range st.Details() {
 			switch t := detail.(type) {
 			case *JobSubmitResponse:
-				fmt.Println("Job Submit Response:", t)
-			case *JobSubmitResponseItem:
-				fmt.Println("Job Submit Response Item:", t)
-			}
-			fmt.Println("GRPC Details - 0:", detail)
-		}
-		fmt.Println("gRPC Details:", st.Details())
-		response := &JobSubmitResponse{
-			JobResponseItems: make([]*JobSubmitResponseItem, 0, len(st.Details())),
-		}
-		for _, detail := range st.Details() {
-			if jobDetail, ok := detail.(*JobSubmitResponseItem); ok {
-				response.JobResponseItems = append(response.JobResponseItems, jobDetail)
+				return t, nil
 			}
 		}
-		return response, err
+		return nil, err
 	}
 	return out, nil
 }
