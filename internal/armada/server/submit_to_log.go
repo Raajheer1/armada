@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/apache/pulsar-client-go/pulsar"
-	_ "github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -100,6 +100,12 @@ func (srv *PulsarSubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmi
 		}
 
 		fmt.Println("STEP 1.1")
+		msgType := proto.MessageType("api.JobSubmitResponse")
+		fmt.Println("Registered type:", msgType)
+
+		msgType2 := proto.MessageType("api.JobSubmitResponseItem")
+		fmt.Println("Registered type:", msgType2)
+
 		st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] Failed to parse job request: %s", err.Error()).WithDetails(details)
 		if e != nil {
 			fmt.Println("AN ERROR OCCURED HERE!!!")
