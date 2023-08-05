@@ -1769,7 +1769,7 @@ func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opt
 			case *JobSubmitResponseItem:
 				fmt.Println("Job Submit Response Item:", t)
 			}
-			fmt.Println(detail)
+			fmt.Println("GRPC Details - 0:", detail)
 		}
 		fmt.Println("gRPC Details:", st.Details())
 		response := &JobSubmitResponse{
@@ -1962,12 +1962,15 @@ func _Submit_SubmitJobs_Handler(srv interface{}, ctx context.Context, dec func(i
 		a1, b1 := srv.(SubmitServer).SubmitJobs(ctx, req.(*JobSubmitRequest))
 		st := status.Convert(b1)
 		fmt.Println("gRPC Details - 1:", st.Details())
+		msgType := proto.MessageType("api.JobSubmitResponse")
+		fmt.Println("Registered type:", msgType)
+
+		msgType2 := proto.MessageType("api.JobSubmitResponseItem")
+		fmt.Println("Registered type:", msgType2)
+
 		return a1, b1
 	}
-	a2, b2 := interceptor(ctx, in, info, handler)
-	st := status.Convert(b2)
-	fmt.Println("gRPC Details - 2:", st.Details())
-	return a2, b2
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Submit_CancelJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
