@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/apache/pulsar-client-go/pulsar"
-	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 	"github.com/gogo/status"
 	"github.com/google/uuid"
@@ -99,31 +98,11 @@ func (srv *PulsarSubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmi
 			JobResponseItems: responseItems,
 		}
 
-		fmt.Println("STEP 1.1")
-		msgType := proto.MessageType("api.JobSubmitResponse")
-		fmt.Println("Registered type:", msgType)
-
-		msgType2 := proto.MessageType("api.JobSubmitResponseItem")
-		fmt.Println("Registered type:", msgType2)
-
 		st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] Failed to parse job request: %s", err.Error()).WithDetails(details)
 		if e != nil {
-			fmt.Println("AN ERROR OCCURED HERE!!!")
 			return nil, status.Newf(codes.Internal, "[SubmitJobs] Failed to parse job request: %s", e.Error()).Err()
 		}
 
-		test := st.Err()
-		fmt.Println("STEP 1.2")
-		st2 := status.Convert(test)
-		for _, detail := range st2.Details() {
-			switch t := detail.(type) {
-			case *api.JobSubmitResponse:
-				fmt.Println("Job Submit Response:", t)
-			case *api.JobSubmitResponseItem:
-				fmt.Println("Job Submit Response Item:", t)
-			}
-			fmt.Println(detail)
-		}
 		return nil, st.Err()
 	}
 	if responseItems, err := commonvalidation.ValidateApiJobs(apiJobs, *srv.SubmitServer.schedulingConfig); err != nil {
