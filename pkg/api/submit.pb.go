@@ -1764,7 +1764,7 @@ func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opt
 		for _, detail := range st.Details() {
 			switch t := detail.(type) {
 			case *JobSubmitResponse:
-				return t, nil
+				return t, err
 			}
 		}
 		return nil, err
