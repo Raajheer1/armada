@@ -105,6 +105,19 @@ func (srv *PulsarSubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmi
 			fmt.Println("AN ERROR OCCURED HERE!!!")
 			return nil, status.Newf(codes.Internal, "[SubmitJobs] Failed to parse job request: %s", e.Error()).Err()
 		}
+
+		test := st.Err()
+		fmt.Println("STEP 1.2")
+		st2 := status.Convert(test)
+		for _, detail := range st2.Details() {
+			switch t := detail.(type) {
+			case *api.JobSubmitResponse:
+				fmt.Println("Job Submit Response:", t)
+			case *api.JobSubmitResponseItem:
+				fmt.Println("Job Submit Response Item:", t)
+			}
+			fmt.Println(detail)
+		}
 		return nil, st.Err()
 	}
 	if responseItems, err := commonvalidation.ValidateApiJobs(apiJobs, *srv.SubmitServer.schedulingConfig); err != nil {
