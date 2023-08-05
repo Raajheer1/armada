@@ -4,17 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	proto2 "github.com/golang/protobuf/proto"
 	"math"
 	"strings"
 	"time"
 
 	"github.com/gogo/protobuf/types"
+	"github.com/gogo/status"
 	pool "github.com/jolestar/go-commons-pool"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"k8s.io/utils/strings/slices"
 
 	"github.com/armadaproject/armada/internal/armada/configuration"
@@ -271,28 +270,24 @@ func (server *SubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmitRe
 
 	jobs, responseItems, e := server.createJobs(req, principal.GetName(), principal.GetGroupNames())
 	if e != nil {
-		details := make([]proto2.Message, len(responseItems))
-		for i, item := range responseItems {
-			details[i] = item
+		details := &api.JobSubmitResponse{
+			JobResponseItems: responseItems,
 		}
 
-		fmt.Println("STEP 1")
 		reqJson, _ := json.Marshal(req)
-		st, err := status.Newf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e).WithDetails(details...)
+		st, err := status.Newf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e).WithDetails(details)
 		if err != nil {
-			fmt.Println("AN ERROR OCCURED HERE!!!")
 			return nil, status.Errorf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e)
 		}
 		return nil, st.Err()
 	}
 	if responseItems, err := validation.ValidateApiJobs(jobs, *server.schedulingConfig); err != nil {
-		details := make([]proto2.Message, len(responseItems))
-		for i, item := range responseItems {
-			details[i] = item
+		details := &api.JobSubmitResponse{
+			JobResponseItems: responseItems,
 		}
 
 		reqJson, _ := json.Marshal(req)
-		st, err := status.Newf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e).WithDetails(details...)
+		st, err := status.Newf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e).WithDetails(details)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "[SubmitJobs] Error submitting job %s for user %s: %v", reqJson, principal.GetName(), e)
 		}
@@ -334,12 +329,11 @@ func (server *SubmitServer) SubmitJobs(ctx context.Context, req *api.JobSubmitRe
 	}
 
 	if ok, responseItems, err := validateJobsCanBeScheduled(jobs, allClusterSchedulingInfo); !ok {
-		details := make([]proto2.Message, len(responseItems))
-		for i, item := range responseItems {
-			details[i] = item
+		details := &api.JobSubmitResponse{
+			JobResponseItems: responseItems,
 		}
 		if err != nil {
-			st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] error validating jobs: %s", err).WithDetails(details...)
+			st, e := status.Newf(codes.InvalidArgument, "[SubmitJobs] error validating jobs: %s", err).WithDetails(details)
 			if e != nil {
 				return nil, status.Errorf(codes.InvalidArgument, "[SubmitJobs] error validating jobs: %s", err)
 			}
