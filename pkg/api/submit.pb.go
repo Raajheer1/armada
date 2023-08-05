@@ -1759,6 +1759,11 @@ func NewSubmitClient(cc *grpc.ClientConn) SubmitClient {
 func (c *submitClient) SubmitJobs(ctx context.Context, in *JobSubmitRequest, opts ...grpc.CallOption) (*JobSubmitResponse, error) {
 	out := new(JobSubmitResponse)
 	err := c.cc.Invoke(ctx, "/api.Submit/SubmitJobs", in, out, opts...)
+	msgType := proto.MessageType("api.JobSubmitResponse")
+	fmt.Println("Client Registered type:", msgType)
+
+	msgType2 := proto.MessageType("api.JobSubmitResponseItem")
+	fmt.Println("Client Registered type:", msgType2)
 	if err != nil {
 		fmt.Printf("Raw error: %v\n", err)
 		st := status.Convert(err)
